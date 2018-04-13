@@ -9,14 +9,12 @@ int main()
 	num.data[2] = 10;
 	std::cout << (num.to_string()) << std::endl;*/
 
-	/*qm::uintBig<unsigned int, 256> num("1000232334563456666666666456457567678870812345651356543568987654354654675");
-	std::cout << (num.to_string()) << std::endl;*/
-	qm::rng_mt19937_std rng;
-	for (size_t i = 0; i < 100; ++i)
-	{
-		std::cout << (rng.next<unsigned char>(0, 1)) << '\n';
-		std::cout << (rng.next<unsigned char>(0, 1)) << '\n';
-	}
+	qm::uintBig<unsigned int, 256> num("112233445566778899");
+	std::cout << (num.to_string()) << '\n';
+	num.set("123456789");
+	std::cout << (num.to_string()) << '\n';
+	num.set("00123");
+	std::cout << (num.to_string()) << std::endl;
 	
 	system("pause");
 	return 0;
