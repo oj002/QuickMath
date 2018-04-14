@@ -5,11 +5,7 @@ namespace qm
 {
 	class rng_mt19937_std
 	{
-	private:
-		std::random_device randomDevice;
-
 	public:
-
 		rng_mt19937_std() : mt(randomDevice()) { }
 		explicit rng_mt19937_std(unsigned int seed) : mt(seed) { }
 
@@ -26,6 +22,8 @@ namespace qm
 			return dist(mt);
 		}
 
+	public:
+		std::random_device randomDevice;
 		std::mt19937 mt;
 	};
 }

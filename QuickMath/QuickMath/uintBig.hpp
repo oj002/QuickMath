@@ -2,6 +2,7 @@
 #include <numeric>
 #include <vector>
 #include <stdint.h>
+#include <algorithm>
 
 namespace qm
 {
@@ -17,28 +18,28 @@ namespace qm
 	public:
 		uintBig() = default;
 
-		uintBig(const std::string &val) : data((val.size() % t_base) + 1, 0)
+		explicit uintBig(const std::string &val) : data((val.size() % t_base) + 1, 0)
 		{
 			data_t dataBase10;
 			dataBase10.resize(val.length());
 			for (internal_size_t i = 0; i < val.length(); ++i)
 			{ 
-				dataBase10.emplace_back(std::stoi(val.substr(i, 1)));
+				dataBase10.push_back(val[i] - '0');
 			}
 			this->data = convertBase(dataBase10, 10, t_base);
 		}
-		uintBig(const std::wstring &val) : data((val.size() % t_base) + 1, 0)
+		explicit uintBig(const std::wstring &val) : data((val.size() % t_base) + 1, 0)
 		{
 			data_t dataBase10;
 			dataBase10.resize(val.length());
 			for (internal_size_t i = 0; i < val.length(); ++i)
 			{ 
-				dataBase10.emplace_back(std::stoi(val.substr(i, 1))); 
+				dataBase10.push_back(std::stoi(val.substr(i, 1))); 
 			}
 			this->data = convertBase(dataBase10, 10, t_base);
 		}
 
-		uintBig add(const uintBig &other)
+		/*uintBig add(const uintBig &other)
 		{
 			bool carry{ false };
 			for (internal_size_t i = 0; i < this->data.size(); ++i)
@@ -48,51 +49,53 @@ namespace qm
 					carry = true;
 				}
 			}
-		}
+		}*/
 
 
 	public: // Getter
 		std::string to_string(size_t base = 10)
 		{
 			// https://cs.stackexchange.com/a/85982
-			std::string ret;
-			data_t num(convertBase(this->data, t_base, base));
-			for (internal_t d: num)
-			{ 
-				ret += this->to_base_c[d];
+			data_t num{ this->data };
+			std::string digits;
+			while (!is_zero(num))
+			{
+				digits += this->to_base_c[modulo_div(num, t_base, base)];
 			}
-			return ret;
+			std::reverse(digits.begin(), digits.end());
+			return digits;
 		}
 		std::wstring to_wstring(internal_size_t base = 10)
 		{
-			std::wstring ret;
-			data_t num(convertBase(this->data, t_base, base));
-			for (internal_t d : num)
-			{ 
-				ret += this->to_base_wc[d]; 
+			data_t num{ this->data };
+			std::wstring digits;
+			while (!is_zero(num))
+			{
+				digits += this->to_base_wc[modulo_div(num, t_base, base)];
 			}
-			return ret;
+			std::reverse(digits.begin(), digits.end());
+			return digits;
 		}
 	public: // Setter
-		void set(std::string val, internal_size_t base = 10)
+		void set(std::string val)
 		{
 			data.resize((val.size() % t_base) + 1, 0);
 			data_t dataBase10;
 			dataBase10.resize(val.length());
 			for (internal_size_t i = 0; i < val.length(); ++i)
 			{ 
-				dataBase10.emplace_back(std::stoi(val.substr(i, 1)));
+				dataBase10.push_back(val[i] - '0');
 			}
 			this->data = convertBase(dataBase10, 10, t_base);
 		}
-		void set(std::wstring val, internal_size_t base = 10)
+		void set(std::wstring val)
 		{
 			data.resize((val.size() % t_base) + 1, 0);
 			data_t dataBase10;
 			dataBase10.resize(val.length());
 			for (internal_size_t i = 0; i < val.length(); ++i)
 			{ 
-				dataBase10.emplace_back(std::stoi(val.substr(i, 1)));
+				dataBase10.push_back(std::stoi(val.substr(i, 1)));
 			}
 			this->data = convertBase(dataBase10, 10, t_base);
 		}
@@ -113,9 +116,8 @@ namespace qm
 			{
 				internal_size_t d{ n };
 				d += original_base * carry;
-				carry = d % destination_base;
-				d /= destination_base;
-				n = d;
+				carry = static_cast<internal_t>(d % destination_base);
+				n = static_cast<internal_t>(d / destination_base);
 			}
 			return carry;
 		}
@@ -125,8 +127,9 @@ namespace qm
 			std::vector<internal_t> digits;
 			while (!is_zero(num))
 			{
-				digits.insert(digits.begin(), modulo_div(num, original_base, destination_base));
+				digits.push_back(modulo_div(num, original_base, destination_base));
 			}
+			std::reverse(digits.begin(), digits.end());
 			return digits;
 		}
 
