@@ -1,85 +1,52 @@
 #include <string>
 #include <numeric>
 #include <vector>
+#include <stdint.h>
 
 namespace qm
 {
-	template<typename T>
-	bool is_zero(std::vector<T> &num)
-	{
-		for (T &n : num)
-		{
-			if (n != 0) { return false; }
-		}
-		return true;
-	}
-
-	template<typename T>
-	size_t modulo_div(std::vector<T> &num, size_t original_base, size_t destination_base)
-	{
-		size_t carry{ 0 };
-		for (T &n : num)
-		{
-			size_t d{ n };
-			d += original_base * carry;
-			carry = d % destination_base;
-			d /= destination_base;
-			n = d;
-		}
-		return carry;
-	}
-
-	template<typename T>
-	std::vector<T> convertBase(std::vector<T> num, size_t original_base, size_t destination_base)
-	{
-		std::vector<T> digits;
-		while (!is_zero(num))
-		{
-			digits.insert(digits.begin(), modulo_div(num, original_base, destination_base));
-		}
-		return digits;
-	}
-
-	template<typename T, size_t t_base = std::numeric_limits<T>::max()>
 	class uintBig
 	{
 	public:
-		typedef uintBig<T> class_t;
-		typedef std::vector<T> data_t;
-		static constexpr size_t t_max = std::numeric_limits<T>::max();
-	public:
-		template<typename = typename std::enable_if<std::is_unsigned<T>::value>::type>
-		uintBig(size_t size, T default_val = 0) : data(size, default_val)
-		{
-			if (t_base > t_max) { throw std::invalid_argument(typeid(class_t).name() + std::string(" template parameter two base cant be bigger than std::numeric_limits<T>")); }
-		}
+		typedef uint32_t internal_t;
+		typedef uint64_t internal_size_t;
+		typedef std::vector<internal_t> data_t;
+		static constexpr internal_t t_max = std::numeric_limits<internal_t>::max();
+		static constexpr internal_t t_base = std::numeric_limits<internal_t>::max();
 
-		template<typename = typename std::enable_if<std::is_unsigned<T>::value>::type>
+	public:
+		uintBig() = default;
+
 		uintBig(const std::string &val) : data((val.size() % t_base) + 1, 0)
 		{
-			if (t_base > t_max) { throw std::invalid_argument(typeid(class_t).name() + std::string(" template parameter two base cant be bigger than std::numeric_limits<T>")); }
-			std::vector<T> dataBase10;
+			data_t dataBase10;
 			dataBase10.resize(val.length());
-			for (size_t i = 0; i < val.length(); ++i) { dataBase10.emplace_back(std::atoi(val.substr(i, 1).c_str())); }
-			this->data = convertBase<T>(dataBase10, 10, t_base);
+			for (internal_size_t i = 0; i < val.length(); ++i)
+			{ 
+				dataBase10.emplace_back(std::stoi(val.substr(i, 1)));
+			}
+			this->data = convertBase(dataBase10, 10, t_base);
 		}
-
-		template<typename = typename std::enable_if<std::is_unsigned<T>::value>::type>
 		uintBig(const std::wstring &val) : data((val.size() % t_base) + 1, 0)
 		{
-			if (t_base > t_max) { throw std::invalid_argument(typeid(class_t).name() + std::string(" template parameter two base cant be bigger than std::numeric_limits<T>")); }
-			std::vector<T> dataBase10;
+			data_t dataBase10;
 			dataBase10.resize(val.length());
-			for (size_t i = 0; i < val.length(); ++i) { dataBase10.emplace_back(std::atoi(val.substr(i, 1).c_str())); }
-			this->data = convertBase<T>(dataBase10, 10, t_base);
+			for (internal_size_t i = 0; i < val.length(); ++i)
+			{ 
+				dataBase10.emplace_back(std::stoi(val.substr(i, 1))); 
+			}
+			this->data = convertBase(dataBase10, 10, t_base);
 		}
 
-		class_t add(const class_t &other)
+		uintBig add(const uintBig &other)
 		{
 			bool carry{ false };
-			for (size_t i = 0; i < this->data.size(); ++i)
+			for (internal_size_t i = 0; i < this->data.size(); ++i)
 			{
-				if (t_max - this->data[i] < other.data[i]) { carry = true; }
+				if (t_max - this->data[i] < other.data[i]) 
+				{
+					carry = true;
+				}
 			}
 		}
 
@@ -89,33 +56,78 @@ namespace qm
 		{
 			// https://cs.stackexchange.com/a/85982
 			std::string ret;
-			std::vector<T> num(convertBase<T>(this->data, t_base, base));
-			for (T d: num) { ret += this->to_base_c[d]; }
+			data_t num(convertBase(this->data, t_base, base));
+			for (internal_t d: num)
+			{ 
+				ret += this->to_base_c[d];
+			}
 			return ret;
 		}
-		std::wstring to_wstring(size_t base = 10)
+		std::wstring to_wstring(internal_size_t base = 10)
 		{
 			std::wstring ret;
-			std::vector<T> num(convertBase<T>(this->data, t_base, base));
-			for (T d : num) { ret += this->to_base_wc[d]; }
+			data_t num(convertBase(this->data, t_base, base));
+			for (internal_t d : num)
+			{ 
+				ret += this->to_base_wc[d]; 
+			}
 			return ret;
 		}
 	public: // Setter
-		void set(std::string val, size_t base = 10)
+		void set(std::string val, internal_size_t base = 10)
 		{
 			data.resize((val.size() % t_base) + 1, 0);
-			std::vector<T> dataBase10;
+			data_t dataBase10;
 			dataBase10.resize(val.length());
-			for (size_t i = 0; i < val.length(); ++i) { dataBase10.emplace_back(std::atoi(val.substr(i, 1).c_str())); }
-			this->data = convertBase<T>(dataBase10, 10, t_base);
+			for (internal_size_t i = 0; i < val.length(); ++i)
+			{ 
+				dataBase10.emplace_back(std::stoi(val.substr(i, 1)));
+			}
+			this->data = convertBase(dataBase10, 10, t_base);
 		}
-		void set(std::wstring val, size_t base = 10)
+		void set(std::wstring val, internal_size_t base = 10)
 		{
 			data.resize((val.size() % t_base) + 1, 0);
-			std::vector<T> dataBase10;
+			data_t dataBase10;
 			dataBase10.resize(val.length());
-			for (size_t i = 0; i < val.length(); ++i) { dataBase10.emplace_back(std::atoi(val.substr(i, 1).c_str())); }
-			this->data = convertBase<T>(dataBase10, 10, t_base);
+			for (internal_size_t i = 0; i < val.length(); ++i)
+			{ 
+				dataBase10.emplace_back(std::stoi(val.substr(i, 1)));
+			}
+			this->data = convertBase(dataBase10, 10, t_base);
+		}
+	private:
+		bool is_zero(std::vector<internal_t> &num)
+		{
+			for (internal_t &n : num)
+			{
+				if (n != 0) { return false; }
+			}
+			return true;
+		}
+
+		internal_t modulo_div(std::vector<internal_t> &num, internal_size_t original_base, internal_size_t destination_base)
+		{
+			internal_t carry{ 0 };
+			for (internal_t &n : num)
+			{
+				internal_size_t d{ n };
+				d += original_base * carry;
+				carry = d % destination_base;
+				d /= destination_base;
+				n = d;
+			}
+			return carry;
+		}
+
+		std::vector<internal_t> convertBase(std::vector<internal_t> num, internal_size_t original_base, internal_size_t destination_base)
+		{
+			std::vector<internal_t> digits;
+			while (!is_zero(num))
+			{
+				digits.insert(digits.begin(), modulo_div(num, original_base, destination_base));
+			}
+			return digits;
 		}
 
 	private:
