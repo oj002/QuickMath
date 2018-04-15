@@ -5,78 +5,7 @@
 #include <numeric>
 #include <string>
 #include <vector>
-std::string multiply(std::string num1, std::string num2)
-{
-	int n1 = num1.size();
-	int n2 = num2.size();
-	if (n1 == 0 || n2 == 0)
-		return "0";
 
-	// will keep the result number in vector
-	// in reverse order
-	std::vector<int> result(n1 + n2, 0);
-
-	// Below two indexes are used to find positions
-	// in result. 
-	int i_n1 = 0;
-	int i_n2 = 0;
-
-	// Go from right to left in num1
-	for (int i = n1 - 1; i >= 0; i--)
-	{
-		int carry = 0;
-		int n1 = num1[i] - '0';
-
-		// To shift position to left after every
-		// multiplication of a digit in num2
-		i_n2 = 0;
-
-		// Go from right to left in num2             
-		for (int j = n2 - 1; j >= 0; j--)
-		{
-			// Take current digit of second number
-			int n2 = num2[j] - '0';
-
-			// Multiply with current digit of first number
-			// and add result to previously stored result
-			// at current position. 
-			int sum = n1 * n2 + result[i_n1 + i_n2] + carry;
-
-			// Carry for next iteration
-			carry = sum / 10;
-
-			// Store result
-			result[i_n1 + i_n2] = sum % 10;
-
-			i_n2++;
-		}
-
-		// store carry in next cell
-		if (carry > 0)
-			result[i_n1 + i_n2] += carry;
-
-		// To shift position to left after every
-		// multiplication of a digit in num1.
-		i_n1++;
-	}
-
-	// ignore '0's from the right
-	int i = result.size() - 1;
-	while (i >= 0 && result[i] == 0)
-		i--;
-
-	// If all were '0's - means either both or
-	// one of num1 or num2 were '0'
-	if (i == -1)
-		return "0";
-
-	// generate the result string
-	std::string s = "";
-	while (i >= 0)
-		s += std::to_string(result[i--]);
-
-	return s;
-}
 namespace qm
 {
 	class uintBig
@@ -124,20 +53,20 @@ namespace qm
 			internal_size_t n1 = a.size(), n2 = b.size();
 			internal_size_t diff = n2 - n1;
 
-			internal_size_t carry = 0;
+			internal_t carry{ 0 };
 			for (internal_size_signed_t i = n1 - 1; i >= 0; --i)
 			{
 				internal_size_t sum = ((a[i]) + (b[i + diff]) + carry);
 				ret.data.push_back(sum % t_base);
 
-				carry = sum / t_base;
+				carry = gsl::narrow_cast<internal_t>(sum / t_base);
 			}
 			// Add remaining digits of larger number
 			for (internal_size_signed_t i = n2 - n1 - 1; i >= 0; --i)
 			{
-				int sum = ((b[i]) + carry);
+				internal_size_t sum = ((b[i]) + carry);
 				ret.data.push_back(sum % t_base);
-				carry = sum / t_base;
+				carry = gsl::narrow_cast<internal_t>(sum / t_base);
 			}
 
 			if (carry) { ret.data.push_back(carry); }
@@ -150,69 +79,46 @@ namespace qm
 		// O(m * n)
 		uintBig mul(const uintBig &other)
 		{
-			internal_size_t n1 = this->data.size();
-			internal_size_t n2 = other.data.size();
+			const internal_size_t n1 = this->data.size();
+			const internal_size_t n2 = other.data.size();
 			if (n1 == 0 || n2 == 0) { return uintBig("0"); }
 
-			// will keep the result number in vector
-			// in reverse order
 			data_t result(n1 + n2, 0);
 
-			// Below two indexes are used to find positions
-			// in result. 
-			internal_size_t i_n1 = 0;
-			internal_size_t i_n2 = 0;
+			internal_size_t i_n1{ 0 };
+			internal_size_t i_n2{ 0 };
 
-			// Go from right to left in num1
 			for (internal_size_signed_t i = n1 - 1; i >= 0; i--)
 			{
-				internal_size_t carry = 0;
-				internal_size_t n1 = this->data[i];
+				internal_t carry{ 0 };
+				const internal_size_t _n1 = this->data[i];
 
-				// To shift position to left after every
-				// multiplication of a digit in num2
 				i_n2 = 0;
-
-				// Go from right to left in num2             
+         
 				for (internal_size_signed_t j = n2 - 1; j >= 0; j--)
 				{
-					// Take current digit of second number
-					internal_size_t n2 = other.data[j];
+					const internal_size_t _n2 = other.data[j];
+					const internal_size_t sum = _n1 * _n2 + result[i_n1 + i_n2] + carry;
 
-					// Multiply with current digit of first number
-					// and add result to previously stored result
-					// at current position. 
-					internal_size_t sum = n1 * n2 + result[i_n1 + i_n2] + carry;
-
-					// Carry for next iteration
-					carry = sum / t_base;
-
-					// Store result
+					carry = gsl::narrow_cast<internal_t>(sum / t_base);
 					result[i_n1 + i_n2] = sum % t_base;
 
-					i_n2++;
+					++i_n2;
 				}
 
-				// store carry in next cell
 				if (carry > 0)
+				{
 					result[i_n1 + i_n2] += carry;
+				}
 
-				// To shift position to left after every
-				// multiplication of a digit in num1.
-				i_n1++;
+				++i_n1;
 			}
 
-			// ignore '0's from the right
 			internal_size_signed_t i = result.size() - 1;
-			while (i >= 0 && result[i] == 0)
-				i--;
+			while (i >= 0 && result[i] == 0) { i--; }
 
-			// If all were '0's - means either both or
-			// one of num1 or num2 were '0'
-			if (i == -1)
-				return uintBig("0");
+			if (i == -1) { return uintBig("0"); }
 
-			// generate the result string
 			uintBig s;
 			while (i >= 0) 
 			{ 
@@ -285,8 +191,8 @@ namespace qm
 			{
 				internal_size_t d{ n };
 				d += original_base * carry;
-				carry = gsl::narrow<internal_t>(d % destination_base);
-				n = gsl::narrow<internal_t>(d / destination_base);
+				carry = gsl::narrow_cast<internal_t>(d % destination_base);
+				n = gsl::narrow_cast<internal_t>(d / destination_base);
 			}
 			return carry;
 		}

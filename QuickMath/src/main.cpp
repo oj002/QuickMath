@@ -23,7 +23,6 @@ struct executionTimer
 
 int main()
 {
-	executionTimer et;
 
 	/*qm::rng_mt19937_std rng;
 	std::string str;
@@ -48,11 +47,12 @@ int main()
 	std::cout << "Enter a positive integer: ";
 	std::cin >> n;
 
+	executionTimer et;
 	for (int i = 1; i <= n; ++i)
 	{
 		factorial = factorial.mul(qm::uintBig(std::to_string(i)));
 	}
 
-	std::cout << "Factorial of " << n << " = " << factorial.to_string() << std::endl;
+	std::cout << "Factorial of " << n << " = " << factorial.to_string(10) << std::endl;
 	return 0;
 }
