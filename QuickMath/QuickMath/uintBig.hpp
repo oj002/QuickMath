@@ -50,13 +50,13 @@ namespace qm
 			uintBig ret;
 
 			if (a.size() > b.size()) { std::swap(a, b); } // make sure length of b is larger.
-			internal_size_t n1 = a.size(), n2 = b.size();
-			internal_size_t diff = n2 - n1;
+			const internal_size_t n1 = a.size(), n2 = b.size();
+			const internal_size_t diff = n2 - n1;
 
 			internal_t carry{ 0 };
 			for (internal_size_signed_t i = n1 - 1; i >= 0; --i)
 			{
-				internal_size_t sum = ((a[i]) + (b[i + diff]) + carry);
+				const internal_size_t sum = (gsl::narrow_cast<internal_size_t>(a[i]) + gsl::narrow_cast<internal_size_t>(b[i + diff]) + gsl::narrow_cast<internal_size_t>(carry));
 				ret.data.push_back(sum % t_base);
 
 				carry = gsl::narrow_cast<internal_t>(sum / t_base);
@@ -64,12 +64,12 @@ namespace qm
 			// Add remaining digits of larger number
 			for (internal_size_signed_t i = n2 - n1 - 1; i >= 0; --i)
 			{
-				internal_size_t sum = ((b[i]) + carry);
+				const internal_size_t sum = (gsl::narrow_cast<internal_size_t>(b[i]) + gsl::narrow_cast<internal_size_t>(carry));
 				ret.data.push_back(sum % t_base);
 				carry = gsl::narrow_cast<internal_t>(sum / t_base);
 			}
 
-			if (carry) { ret.data.push_back(carry); }
+			if (carry != 0u) { ret.data.push_back(carry); }
 			std::reverse(ret.data.begin(), ret.data.end());
 
 			return ret;
@@ -184,7 +184,7 @@ namespace qm
 			return true;
 		}
 
-		internal_t modulo_div(gsl::not_null<std::vector<internal_t>*> num, internal_size_t original_base, internal_size_t destination_base) const
+		internal_t modulo_div(gsl::not_null<std::vector<internal_t>*> num, internal_size_t original_base, internal_size_t destination_base) const noexcept
 		{
 			internal_t carry{ 0 };
 			for (internal_t &n : *num)

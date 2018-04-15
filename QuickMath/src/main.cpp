@@ -1,8 +1,8 @@
 #include "../QuickMath/QuickMath.hpp"
+#include <chrono>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <chrono>
 
 struct executionTimer
 {
@@ -41,7 +41,7 @@ int main()
 	qm::uintBig b("987");
 	std::cout << (a.mul(b)).to_string() << '\n';// a.to_string() << '\n' << b.to_string() << '\n' << a.add(b).to_string() << std::endl;
 	*/
-	int n;
+	int n{ 0 };
 	qm::uintBig factorial("1");
 
 	std::cout << "Enter a positive integer: ";
