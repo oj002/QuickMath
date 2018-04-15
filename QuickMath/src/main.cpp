@@ -25,7 +25,7 @@ int main()
 {
 	executionTimer et;
 
-	qm::rng_mt19937_std rng;
+	/*qm::rng_mt19937_std rng;
 	std::string str;
 	qm::uintBig num;
 	for (size_t i = 0; i < 2000; ++i)
@@ -38,5 +38,21 @@ int main()
 			std::puts("shit!");
 		}
 	}
+	qm::uintBig a("123");
+	qm::uintBig b("987");
+	std::cout << (a.mul(b)).to_string() << '\n';// a.to_string() << '\n' << b.to_string() << '\n' << a.add(b).to_string() << std::endl;
+	*/
+	int n;
+	qm::uintBig factorial("1");
+
+	std::cout << "Enter a positive integer: ";
+	std::cin >> n;
+
+	for (int i = 1; i <= n; ++i)
+	{
+		factorial = factorial.mul(qm::uintBig(std::to_string(i)));
+	}
+
+	std::cout << "Factorial of " << n << " = " << factorial.to_string() << std::endl;
 	return 0;
 }
