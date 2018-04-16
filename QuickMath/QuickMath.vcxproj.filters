@@ -24,6 +24,9 @@
     <ClInclude Include="QuickMath\uintBig.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="QuickMath\bigInt.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">

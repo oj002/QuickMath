@@ -53,6 +53,6 @@ int main()
 		factorial = factorial.mul(qm::uintBig(std::to_string(i)));
 	}
 
-	std::cout << "Factorial of " << n << " = " << factorial.to_string(10) << std::endl;
+	std::cout << "Factorial of " << n << " = " << factorial.to_string() << std::endl;
 	return 0;
 }
