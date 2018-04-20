@@ -18,13 +18,16 @@
     <ClInclude Include="QuickMath\QuickMath.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="QuickMath\Random.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="QuickMath\uintBig.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QuickMath\bigInt.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QuickMath\Utils\ExecutionTimer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QuickMath\Utils\Random.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -35,5 +38,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-tidy" />
+    <None Include="Dependencies\include\gsl\gsl" />
+    <None Include="Dependencies\include\gsl\gsl_algorithm" />
+    <None Include="Dependencies\include\gsl\gsl_assert" />
+    <None Include="Dependencies\include\gsl\gsl_byte" />
+    <None Include="Dependencies\include\gsl\gsl_util" />
+    <None Include="Dependencies\include\gsl\multi_span" />
+    <None Include="Dependencies\include\gsl\pointers" />
+    <None Include="Dependencies\include\gsl\span" />
+    <None Include="Dependencies\include\gsl\string_span" />
   </ItemGroup>
 </Project>

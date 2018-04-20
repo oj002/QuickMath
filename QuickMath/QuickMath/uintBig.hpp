@@ -13,7 +13,7 @@ namespace qm
 	public:
 		using internal_t = uint32_t;
 		using internal_size_t = uint64_t;
-		using internal_size_signed_t = int64_t;
+		using internal_signed_t = int64_t;
 		using data_t = std::vector<internal_t>;
 		static constexpr internal_t t_max = std::numeric_limits<internal_t>::max();
 		static constexpr internal_t t_base = std::numeric_limits<internal_t>::max();
@@ -27,7 +27,7 @@ namespace qm
 			dataBase10.reserve(val.length());
 			for (const char i : val)
 			{ 
-				dataBase10.push_back(i - '0');
+				dataBase10.emplace_back(i - '0');
 			}
 			this->data = convertBase(dataBase10, 10, t_base);
 		}
@@ -37,7 +37,7 @@ namespace qm
 			dataBase10.resize(val.length());
 			for (internal_size_t i = 0; i < val.length(); ++i)
 			{ 
-				dataBase10.push_back(std::stoi(val.substr(i, 1))); 
+				dataBase10.emplace_back(std::stoi(val.substr(i, 1)));
 			}
 			this->data = convertBase(dataBase10, 10, t_base);
 		}
@@ -54,18 +54,18 @@ namespace qm
 			const internal_size_t diff = n2 - n1;
 
 			internal_t carry{ 0 };
-			for (internal_size_signed_t i = n1 - 1; i >= 0; --i)
+			for (internal_signed_t i = n1 - 1; i >= 0; --i)
 			{
 				const internal_size_t sum = (gsl::narrow_cast<internal_size_t>(a[i]) + gsl::narrow_cast<internal_size_t>(b[i + diff]) + gsl::narrow_cast<internal_size_t>(carry));
-				ret.data.push_back(sum % t_base);
+				ret.data.emplace_back(sum % t_base);
 
 				carry = gsl::narrow_cast<internal_t>(sum / t_base);
 			}
 			// Add remaining digits of larger number
-			for (internal_size_signed_t i = n2 - n1 - 1; i >= 0; --i)
+			for (internal_signed_t i = n2 - n1 - 1; i >= 0; --i)
 			{
 				const internal_size_t sum = (gsl::narrow_cast<internal_size_t>(b[i]) + gsl::narrow_cast<internal_size_t>(carry));
-				ret.data.push_back(sum % t_base);
+				ret.data.emplace_back(sum % t_base);
 				carry = gsl::narrow_cast<internal_t>(sum / t_base);
 			}
 
@@ -74,7 +74,52 @@ namespace qm
 
 			return ret;
 		}
+		// https://www.geeksforgeeks.org/difference-of-two-large-numbers/
+		// Time complexity : O(n1 + n2)
+		uintBig difference(const uintBig &other)
+		{
+			data_t a{ this->data };
+			data_t b{ other.data };
+			if (isSmaller(a, b)) 
+			{
+				std::swap(a, b);
+			}
 
+			uintBig res;
+
+			internal_size_t na{ a.size() }, nb{ b.size() };
+			internal_signed_t diff{ gsl::narrow_cast<internal_signed_t>(na - nb) };
+
+			internal_signed_t carry = 0;
+
+			for (internal_signed_t i = nb - 1; i >= 0; --i)
+			{
+				internal_signed_t sub{ (static_cast<internal_signed_t>(a[i + diff]) - static_cast<internal_signed_t>(b[i]) - carry) };
+				if (sub < 0)
+				{
+					sub += t_base;
+					carry = 1;
+				}
+				else { carry = 0; }
+
+				res.data.push_back(sub);
+			}
+			for (internal_signed_t i = diff - 1; i >= 0; --i)
+			{
+				if (a[i] == 0 && carry != 0)
+				{
+					res.data.push_back(t_base - 1);
+					continue;
+				}
+				internal_signed_t sub{ static_cast<internal_signed_t>(a[i]) - carry };
+				if (i > 0 || sub > 0) { res.data.push_back(sub); }
+				carry = 0;
+			}
+
+			std::reverse(res.data.begin(), res.data.end());
+
+			return res;
+		}
 		// https://www.geeksforgeeks.org/multiply-large-numbers-represented-as-strings/
 		// O(m * n)
 		uintBig mul(const uintBig &other)
@@ -88,14 +133,14 @@ namespace qm
 			internal_size_t i_n1{ 0 };
 			internal_size_t i_n2{ 0 };
 
-			for (internal_size_signed_t i = n1 - 1; i >= 0; i--)
+			for (internal_signed_t i = n1 - 1; i >= 0; i--)
 			{
 				internal_t carry{ 0 };
 				const internal_size_t _n1 = this->data[i];
 
 				i_n2 = 0;
          
-				for (internal_size_signed_t j = n2 - 1; j >= 0; j--)
+				for (internal_signed_t j = n2 - 1; j >= 0; j--)
 				{
 					const internal_size_t _n2 = other.data[j];
 					const internal_size_t sum = _n1 * _n2 + result[i_n1 + i_n2] + carry;
@@ -114,7 +159,7 @@ namespace qm
 				++i_n1;
 			}
 
-			internal_size_signed_t i = result.size() - 1;
+			internal_signed_t i = result.size() - 1;
 			while (i >= 0 && result[i] == 0) { i--; }
 
 			if (i == -1) { return uintBig("0"); }
@@ -138,6 +183,7 @@ namespace qm
 				digits += gsl::at(uintBig::to_base_c, modulo_div(&num, t_base, base));
 			}
 			std::reverse(digits.begin(), digits.end());
+			if (digits == "") { digits = "0"; }
 			return digits;
 		}
 		std::wstring to_wstring(internal_size_t base = 10)
@@ -149,6 +195,7 @@ namespace qm
 				digits += gsl::at(uintBig::to_base_wc, modulo_div(&num, t_base, base));
 			}
 			std::reverse(digits.begin(), digits.end());
+			if (digits == L"") { digits = L"0"; }
 			return digits;
 		}
 	public: // Setter
@@ -159,7 +206,7 @@ namespace qm
 			dataBase10.resize(val.length());
 			for (const char i : val)
 			{ 
-				dataBase10.push_back(i - '0');
+				dataBase10.emplace_back(i - '0');
 			}
 			this->data = convertBase(dataBase10, 10, t_base);
 		}
@@ -170,7 +217,7 @@ namespace qm
 			dataBase10.resize(val.length());
 			for (internal_size_t i = 0; i < val.length(); ++i)
 			{ 
-				dataBase10.push_back(std::stoi(val.substr(i, 1)));
+				dataBase10.emplace_back(std::stoi(val.substr(i, 1)));
 			}
 			this->data = convertBase(dataBase10, 10, t_base);
 		}
@@ -183,7 +230,20 @@ namespace qm
 			}
 			return true;
 		}
+		bool isSmaller(const data_t &a, const data_t &b)
+		{
+			const internal_size_t na = a.size(), nb = b.size();
 
+			if (na < nb) { return true; }
+			if (na > nb) { return false; }
+
+			for (internal_size_t i{ 0 }; i < na; ++i)
+			{
+				if (a[i] < b[i]) { return true; }
+				if (a[i] > b[i]) { return false; }
+			}
+			return false;
+		}
 		internal_t modulo_div(gsl::not_null<std::vector<internal_t>*> num, internal_size_t original_base, internal_size_t destination_base) const noexcept
 		{
 			internal_t carry{ 0 };
@@ -196,13 +256,12 @@ namespace qm
 			}
 			return carry;
 		}
-
 		std::vector<internal_t> convertBase(std::vector<internal_t> num, internal_size_t original_base, internal_size_t destination_base) const
 		{
 			std::vector<internal_t> digits;
 			while (!is_zero(num))
 			{
-				digits.push_back(modulo_div(&num, original_base, destination_base));
+				digits.emplace_back(modulo_div(&num, original_base, destination_base));
 			}
 			std::reverse(digits.begin(), digits.end());
 			return digits;
